@@ -1,1 +1,1 @@
-mvn exec:java -Dexec.args="%*"
+mvn package exec:java -Dexec.args="%*"

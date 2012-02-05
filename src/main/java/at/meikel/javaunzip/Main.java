@@ -6,24 +6,26 @@ import com.Ostermiller.util.CmdLnOption;
 import com.Ostermiller.util.CmdLnResult;
 
 import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Main {
 
     private boolean printHelp;
-    private String sourceFileInput;
-    private String targetDirInput;
-    private File sourceFile;
-    private File targetDir;
-    private boolean dropTarget;
+    private JavaUnzip javaUnzip;
 
     public static void main(String[] args) {
         if (args.length == 0) {
             args = new String[]{
-                    "--drop-target",
                     "--source",
-                    "C:\\Users\\becker\\IdeaProjects\\Fussball-Tippspiel\\target\\at.meikel.fts-src.zip",
+                    "..\\meikel-JavaUnzip-1230dd7.zip",
                     "--target",
-                    "C:\\Temp\\tralala",
+                    "..\\xxx",
+                    "--drop-target",
+                    // "--omit-timestamps",
+                    "--use-timestamp",
+                    "2012-01-17 18-30",
             };
         }
 
@@ -33,12 +35,11 @@ public class Main {
 
         Main main = new Main();
         main.parseArgs(args);
-        main.validate();
-        JavaUnzip.unzip(main.getSourceFile(), main.getTargetDir(), main.isDropTarget());
+        main.unzip();
     }
 
     public Main() {
-        targetDirInput = ".";
+        javaUnzip = new JavaUnzip();
     }
 
     public void parseArgs(String[] args) {
@@ -56,7 +57,7 @@ public class Main {
                 new CmdLnOption("source", 's').setRequiredArgument().setDescription("name (including path) of zip file to unzip").setListener(
                         new CmdLnListener() {
                             public void found(CmdLnResult result) {
-                                sourceFileInput = result.getArgument();
+                                javaUnzip.setSourceFile(new File(result.getArgument()));
                             }
                         }
                 )
@@ -65,7 +66,7 @@ public class Main {
                 new CmdLnOption("target", 't').setRequiredArgument().setDescription("no description available").setListener(
                         new CmdLnListener() {
                             public void found(CmdLnResult result) {
-                                targetDirInput = result.getArgument();
+                                javaUnzip.setTargetDir(new File(result.getArgument()));
                             }
                         }
                 )
@@ -74,7 +75,40 @@ public class Main {
                 new CmdLnOption("drop-target", 'd').setDescription("no description available").setListener(
                         new CmdLnListener() {
                             public void found(CmdLnResult result) {
-                                dropTarget = true;
+                                javaUnzip.setDropTarget(true);
+                            }
+                        }
+                )
+        );
+        cmdLn.addOption(
+                new CmdLnOption("update-target", 'u').setDescription("no description available").setListener(
+                        new CmdLnListener() {
+                            public void found(CmdLnResult result) {
+                                javaUnzip.setUpdateTarget(true);
+                            }
+                        }
+                )
+        );
+        cmdLn.addOption(
+                new CmdLnOption("omit-timestamps", 'o').setDescription("no description available").setListener(
+                        new CmdLnListener() {
+                            public void found(CmdLnResult result) {
+                                javaUnzip.setOmitTimestamps(true);
+                            }
+                        }
+                )
+        );
+        cmdLn.addOption(
+                new CmdLnOption("use-timestamp").setRequiredArgument().setDescription("no description available").setListener(
+                        new CmdLnListener() {
+                            public void found(CmdLnResult result) {
+                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH-mm");
+                                try {
+                                    Date useTimestamp = sdf.parse(result.getArgument());
+                                    javaUnzip.setUseTimestamp(Long.valueOf(useTimestamp.getTime()));
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
                 )
@@ -86,20 +120,8 @@ public class Main {
         }
     }
 
-    private void validate() {
-        sourceFile = new File(sourceFileInput);
-        targetDir = new File(targetDirInput);
+    private void unzip() {
+        javaUnzip.unzip();
     }
 
-    private File getSourceFile() {
-        return sourceFile;
-    }
-
-    public File getTargetDir() {
-        return targetDir;
-    }
-
-    public boolean isDropTarget() {
-        return dropTarget;
-    }
 }
